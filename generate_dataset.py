@@ -3,37 +3,39 @@
 import numpy as np
 import argparse
 import os
-from stgcn_lib.utils import load_config # 从我们自己的库导入
+import sys
+
+# 将项目根目录添加到Python路径中，确保可以找到 stgcn_lib
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(project_root)
+
+from stgcn_lib.utils import load_config
 
 def generate_semi_realistic_data(num_samples, config):
     """
     生成具有时空相关性的半真实数据集。
-    - 时间相关性: 每个节点的时间序列是带有噪声的正弦波。
-    - 空间相关性: 相邻节点的正弦波相位略有不同。
     """
     N = config['data']['num_nodes']
     T_in = config['data']['num_timesteps_input']
     T_out = config['data']['num_timesteps_output']
     
-    # 1. 生成邻接矩阵 (与之前类似，但现在是固定的)
+    # 1. 生成邻接矩阵
     print("Generating adjacency matrix...")
     adj = np.random.rand(N, N)
     adj[adj > 0.1] = 1
     adj[adj <= 0.1] = 0
-    adj = np.maximum(adj, adj.T) # 确保对称
+    adj = np.maximum(adj, adj.T)
     np.fill_diagonal(adj, 0)
     print("Adjacency matrix generated.")
 
     # 2. 生成长时序数据
     print("Generating long time-series with spatio-temporal properties...")
-    total_timesteps = num_samples + T_in + T_out # 需要的总时间点数
+    total_timesteps = num_samples + T_in + T_out
     time_axis = np.arange(total_timesteps)
     long_series = np.zeros((total_timesteps, N, 1))
 
     for i in range(N):
-        # 每个节点的相位略有不同，以模拟空间相关性
         phase_shift = (i / N) * 2 * np.pi
-        # 每个节点有不同的频率和振幅
         frequency = np.random.uniform(0.05, 0.2)
         amplitude = np.random.uniform(0.8, 1.2)
         
@@ -66,10 +68,13 @@ if __name__ == '__main__':
     parser.add_argument('--num_samples', type=int, default=1000, help='Number of samples to generate.')
     args = parser.parse_args()
     
-    # 从config.yaml加载配置以获取节点数等信息
     config = load_config(args.config)
     
-    output_path = config['data']['data_path']
+    # ******** 这是核心的修改 ********
+    # 从新的配置结构中读取半真实数据集的路径
+    output_path = config['data']['semi_realistic_path']
+    # *******************************
+
     output_dir = os.path.dirname(output_path)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)

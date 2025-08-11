@@ -3,17 +3,29 @@
 #-----------------------------
 data:
   # --- 数据源控制 ---
-  use_file_dataset: true   # 设置为 true 使用下面的 data_path, 设置为 false 则动态生成模拟数据
-  data_path: "./data/semi_realistic_dataset.npz" 
-  
+  # 可选值: 'dummy', 'semi_realistic', 'metr_la'
+  data_mode: 'metr_la'
+
+  # --- 文件路径配置 ---
+  # 半真实数据集路径
+  semi_realistic_path: "./data/semi_realistic_dataset.npz"
+  # METR-LA 数据集路径
+  metr_la:
+    raw_path: "./data/raw/metr-la.h5"
+    adj_path: "./data/raw/adj_mx.pkl"
+    processed_path: "./data/processed/metr_la.npz"
+
   # --- 通用数据参数 ---
-  num_nodes: 207           
-  num_features: 1          
-  num_timesteps_input: 12  
+  num_nodes: 207           # METR-LA 数据集有207个传感器节点
+  num_features: 1          # 我们只使用速度这1个特征
+  num_timesteps_input: 12
   num_timesteps_output: 12
+  # 训练/验证/测试集划分比例 (仅用于METR-LA)
+  train_split: 0.7
+  val_split: 0.1
 
 #-----------------------------
-# 模型配置
+# 模型与训练配置 (与之前相同)
 #-----------------------------
 model:
   spatial_channels: 16
@@ -21,19 +33,13 @@ model:
   time_kernel_size: 3
   graph_kernel_size: 1
 
-#-----------------------------
-# 训练配置
-#-----------------------------
 training:
   device: "cuda"
   batch_size: 32
   epochs: 50
   learning_rate: 0.001
   optimizer: "adam"
-  
-#-----------------------------
-# 断点续传与日志配置
-#-----------------------------
+
 checkpoint:
   save_dir: "./checkpoints"
   save_every_epochs: 5

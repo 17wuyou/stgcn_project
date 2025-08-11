@@ -2,3 +2,8 @@ torch
 numpy
 PyYAML
 tqdm
+pandas
+scipy
+requests
+tables
+gdown

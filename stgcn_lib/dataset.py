@@ -6,32 +6,36 @@ from torch.utils.data import Dataset
 
 class STGCN_Dataset(Dataset):
     """
-    用于加载预生成数据集的PyTorch Dataset类。
+    用于加载预处理后的数据集的PyTorch Dataset类。
     """
-    def __init__(self, data_path):
+    def __init__(self, processed_data_path, split='train'):
         """
         Args:
-            data_path (str): .npz文件的路径
+            processed_data_path (str): 处理后的 .npz 文件的路径
+            split (str): 'train', 'val', 或 'test'
         """
-        data = np.load(data_path)
-        
-        # 将数据转换为float32类型的Tensor
-        # 注意：这里不直接移动到GPU，让DataLoader来处理
-        self.X = torch.from_numpy(data['X']).float()
-        self.Y = torch.from_numpy(data['Y']).float()
+        data = np.load(processed_data_path)
+
+        if split not in ['train', 'val', 'test']:
+            raise ValueError("Split must be 'train', 'val', or 'test'.")
+
+        x_key, y_key = f'X_{split}', f'Y_{split}'
+
+        self.X = torch.from_numpy(data[x_key]).float()
+        self.Y = torch.from_numpy(data[y_key]).float()
         self.adj = torch.from_numpy(data['adj']).float()
-        
-        print(f"Data loaded from {data_path}")
-        print(f"X shape: {self.X.shape}, Y shape: {self.Y.shape}, Adj shape: {self.adj.shape}")
+
+        # 保存标准化参数，以备后续反标准化使用
+        self.mean = data['mean']
+        self.std = data['std']
+
+        print(f"Loaded {split} data: X shape={self.X.shape}, Y shape={self.Y.shape}")
 
     def __len__(self):
-        """返回数据集中的样本总数"""
         return self.X.shape[0]
 
     def __getitem__(self, idx):
-        """根据索引获取一个样本"""
         return self.X[idx], self.Y[idx]
-        
+
     def get_adj(self):
-        """获取邻接矩阵"""
         return self.adj
