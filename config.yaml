@@ -1,0 +1,35 @@
+#-----------------------------
+# 数据配置
+#-----------------------------
+data:
+  num_nodes: 207           # 交通网络中的节点数 (例如, PeMSD7(M)数据集)
+  num_features: 1          # 每个节点的输入特征数 (例如, 仅速度这1个特征)
+  num_timesteps_input: 12  # 输入的时间步长 (例如, 用过去1小时的数据, 12 * 5分钟)
+  num_timesteps_output: 12 # 预测的时间步长 (例如, 预测未来1小时)
+
+#-----------------------------
+# 模型配置
+#-----------------------------
+model:
+  spatial_channels: 16     # 空间卷积层的瓶颈通道数
+  out_channels: 64         # ST-Conv块的输出通道数
+  time_kernel_size: 3      # 时间卷积核的大小
+  graph_kernel_size: 1     # 图卷积的阶数 (论文中采用1阶近似)
+
+#-----------------------------
+# 训练配置
+#-----------------------------
+training:
+  device: "cuda"           # 使用 "cuda" 或 "cpu"
+  batch_size: 32
+  epochs: 50
+  learning_rate: 0.001
+  optimizer: "adam"
+  
+#-----------------------------
+# 断点续传与日志配置
+#-----------------------------
+checkpoint:
+  save_dir: "./checkpoints" # 检查点保存目录
+  save_every_epochs: 5      # 每隔多少个epoch保存一次
+  load_checkpoint: True     # 是否在开始时加载最新的检查点
